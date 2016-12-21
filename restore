@@ -1,0 +1,14 @@
+echo "Remove existing MySQL data files"
+rm -rf /var/lib/mysql/*
+echo "Restoring the data from $1"
+xbstream -x <  $1 -C /var/lib/mysql/
+echo "Decompresing"
+innobackupex --use-memory=2G --parallel=2 --decompress /var/lib/mysql
+echo "Remove .qp files"
+find /var/lib/mysql/ -name "*.qp" -exec rm {} \;
+echo "Applying log"
+innobackupex --use-memory=2G --apply-log /var/lib/mysql
+echo "Change the owershop of restored data"
+chown -R mysql:mysql /var/lib/mysql
+echo "Finished. The binlog"
+cat /var/lib/mysql/xtrabackup_binlog_info
